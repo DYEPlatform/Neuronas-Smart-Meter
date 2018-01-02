@@ -11,8 +11,10 @@
   "author": "krouw",
   "license": "GPL-3.0",
   "dependencies": {
+    "axios": "^0.17.1",
     "dotenv": "^4.0.0",
     "lodash": "^4.17.4",
+    "mocha-each": "^1.1.0",
     "moment": "^2.19.2",
     "mqtt": "^2.14.0",
     "redux": "^3.7.2",

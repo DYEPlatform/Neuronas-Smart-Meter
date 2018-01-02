@@ -8,35 +8,51 @@ const struct = require('superstruct').struct
 module.exports = class Meter {
 
   constructor ( config ) {
-    const validate = this._validateConstructor( config.id , config.xbeeProductId, config.mqtt )
+    const validate = this._validateConstructor( config )
     if( _.isEmpty(validate) ) {
       this.id = config.id
       this.zigbee = new Zigbee( config.xbeeProductId, store )
       this.store = store
       this.interval = config.interval || 10000
 
-      this.setMqttServer( `${config.mqtt.server}:${config.mqtt.port}` )
-      this.setMqttClient( config.mqtt.client )
+
+
+      /*this.setMqttServer( `${config.mqtt.server}:${config.mqtt.port}` )
+      this.setMqttClient( config.mqtt.client ) */
     }
     else {
       throw new Error(JSON.stringify(validate))
     }
   }
 
-  _validateConstructor( id, xbeeProductId, mqttConfig ) {
-
+  _validateConstructor( config ) {
+    const { id, xbeeProductId, authServices, authPasswords } = config
     let errors = {}
-
-    if( !_.isString( xbeeProductId ) ){
-      errors.xbeeProductId = "Parametro Invalido"
-    }
-
-    if( _.isEmpty( mqttConfig ) ){
-      errors.mqttConfig = "Parametro Invalido"
-    }
 
     if( _.isEmpty(id) ) {
       errors.id = 'Parametro Invalido'
+    }
+
+    if( !_.isString( xbeeProductId ) || _.isEmpty( xbeeProductId ) ){
+      errors.xbeeProductId = "Parametro Invalido"
+    }
+
+    if( _.isEmpty( authServices ) && _.isEmpty( authPasswords ) ) {
+
+    }
+    else if( !_.isEmpty( authServices ) && _.isEmpty( authPasswords ) ) {
+      errors.auth_services = 'No se ha ingresado ninguna password de servicios'
+    }
+    else if ( !_.isEmpty( authPasswords ) && _.isEmpty( authServices ) ) {
+      errors.auth_services = 'No hay servicios para utilizar las contraseñas'
+    }
+    else if ( !_.isEmpty( authServices ) && !_.isEmpty( authPasswords ) ) {
+
+      const authSericeArray = authServices.split(' ')
+      const authPasswordsArray = authPasswords.split(' ')
+      if ( authSericeArray.length != authPasswordsArray.length ) {
+       errors.auth_services = "El número de servicios y contraseñas no coincide"
+      }
     }
 
     if( !store ) {
@@ -70,6 +86,10 @@ module.exports = class Meter {
       }
     }, this.interval)
     this.eventsZigbee()
+  }
+
+  getAuth () {
+
   }
 
   eventsZigbee () {
@@ -129,6 +149,10 @@ module.exports = class Meter {
       .catch((err) => {
         console.error(err);
       })
+  }
+
+  setCredentials ( id, password ) {
+
   }
 
   setMqttServer ( server ) {

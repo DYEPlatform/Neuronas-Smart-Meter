@@ -1,23 +1,73 @@
-const expect = require("chai").expect
-const Meter = require('../src/meter')
-const assert = require('chai').assert
+const expect = require("chai").expect,
+      Meter = require('../src/meter'),
+      assert = require('chai').assert,
+      forEach = require('mocha-each')
+
 
 require('dotenv').config({ path: '.env.development' })
+
+describe("Bootstrap Meter", () => {
+
+  forEach([
+    ['8cee97fc','6001','1:123456','1:localhost:3000'],
+    ['8cee97fc','6001',undefined,undefined],
+    ['8cee97fc','6001','',''],
+  ])
+  .it('pass validateConstructor', (  id, xbeeProductId, authPasswords, authServices, done ) => {
+    try {
+      const config = {
+        id,
+        xbeeProductId,
+        authPasswords,
+        authServices,
+      }
+      const meter = new Meter( config )
+      done();
+    } catch (e) {
+      done('failed');
+    }
+  })
+
+  forEach([
+    ['','6001','123456','localhost:3000'],
+    ['8cee97fc','','123456','localhost:3000'],
+    ['8cee97fc','6001','','localhost:3000'],
+    ['8cee97fc','6001','123456',''],
+    ['8cee97fc','6001','123456 123456','localhost:3000'],
+  ])
+  .it('fail validateConstructor', (  id, xbeeProductId, authPasswords, authServices, done ) => {
+    try {
+      const config = {
+        id,
+        xbeeProductId,
+        authPasswords,
+        authServices,
+      }
+      const meter = new Meter( config )
+      done('failed');
+    } catch (e) {
+      done();
+    }
+  })
+
+})
+
 
 describe("attributeValidation", () => {
 
   const config = {
     id: process.env.ID,
     xbeeProductId: process.env.ID_XBEE,
-    mqtt: {
-      server: process.env.MQTT_SERVER,
-      port: process.env.MQTT_PORT,
-      client: process.env.MQTT_CLIENT
-    }
+    name: process.env.NAME,
+    authPasswords: process.env.AUTH_PASSWORDS,
+    authServices: process.env.AUTH_SERVICES,
+    mqttServices: process.env.MQTT_SERVICES,
+    coapServices: process.env.COAP_SERVICES,
+    interval: 1000,
   }
 
   let meter = {};
-  const testPromise = ( test ) => {
+  const testPromiseAll = ( test ) => {
     return new Promise(function(resolve, reject) {
       let count = 0
       let func = []
@@ -26,7 +76,6 @@ describe("attributeValidation", () => {
       })
       Promise.all(func.map(p => p.catch(() => undefined)))
         .then((value) => {
-          console.log('value', value);
           const filter = value.filter(Boolean)
           resolve(filter.length)
         })
@@ -47,7 +96,7 @@ describe("attributeValidation", () => {
       '01,3317,1.323,11/12/2017,20:22:00',
     ]
 
-    testPromise(test)
+    testPromiseAll(test)
       .then((count) => {
         assert.equal(test.length, count, '== prueba');
         done()
@@ -72,7 +121,7 @@ describe("attributeValidation", () => {
       '33,3321,32.2,-4/2/2017,33:22:11'
     ]
 
-    testPromise(test)
+    testPromiseAll(test)
       .then((count) => {
         assert.equal(0, count, '== prueba');
         done()

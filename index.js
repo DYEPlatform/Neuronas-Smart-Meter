@@ -10,13 +10,15 @@ require('dotenv').config({ path: env_path })
 const config = {
   id: process.env.ID,
   xbeeProductId: process.env.ID_XBEE,
-  mqtt: {
-    server: process.env.MQTT_SERVER,
-    port: process.env.MQTT_PORT,
-    client: process.env.MQTT_CLIENT
-  },
-  interval: 5000,
+  name: process.env.NAME,
+  authPasswords: process.env.AUTH_PASSWORDS,
+  authServices: process.env.AUTH_SERVICES,
+  mqttServices: process.env.MQTT_SERVICES,
+  coapServices: process.env.COAP_SERVICES,
+  interval: 1000,
 }
+
+console.log(config);
 
 const meter = new Meter( config )
 
