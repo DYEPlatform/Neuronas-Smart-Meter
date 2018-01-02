@@ -18,8 +18,6 @@ const config = {
   interval: 1000,
 }
 
-console.log(config);
-
 const meter = new Meter( config )
 
 meter.start()

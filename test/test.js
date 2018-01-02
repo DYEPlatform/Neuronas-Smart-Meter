@@ -1,15 +1,17 @@
+process.env.NODE_ENV = 'test'
+
 const expect = require("chai").expect,
       Meter = require('../src/meter'),
       assert = require('chai').assert,
       forEach = require('mocha-each')
-
 
 require('dotenv').config({ path: '.env.development' })
 
 describe("Bootstrap Meter", () => {
 
   forEach([
-    ['8cee97fc','6001','1:123456','1:localhost:3000'],
+    ['8cee97fc','6001','123456','localhost:3000'],
+    ['8cee97fc','6001','123456 123456','localhost:3000 localhost:3001'],
     ['8cee97fc','6001',undefined,undefined],
     ['8cee97fc','6001','',''],
   ])

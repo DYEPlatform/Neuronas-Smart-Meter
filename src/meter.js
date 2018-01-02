@@ -1,9 +1,9 @@
-const Zigbee = require('./zigbee')
-const _ = require('lodash')
-const store = require('./store')
-const moment = require('moment')
-const ActionsMqtt = require('./actions/Mqtt')
-const struct = require('superstruct').struct
+const Zigbee = require('./zigbee'),
+      _ = require('lodash'),
+      store = require('./store'),
+      moment = require('moment'),
+      { addAuthService,
+        fetchAuthService } = require('./actions/Auth')
 
 module.exports = class Meter {
 
@@ -15,7 +15,7 @@ module.exports = class Meter {
       this.store = store
       this.interval = config.interval || 10000
 
-
+      this.setAuthServices(config.authServices, config.authPasswords)
 
       /*this.setMqttServer( `${config.mqtt.server}:${config.mqtt.port}` )
       this.setMqttClient( config.mqtt.client ) */
@@ -48,9 +48,9 @@ module.exports = class Meter {
     }
     else if ( !_.isEmpty( authServices ) && !_.isEmpty( authPasswords ) ) {
 
-      const authSericeArray = authServices.split(' ')
+      const authServiceArray = authServices.split(' ')
       const authPasswordsArray = authPasswords.split(' ')
-      if ( authSericeArray.length != authPasswordsArray.length ) {
+      if ( authServiceArray.length != authPasswordsArray.length ) {
        errors.auth_services = "El número de servicios y contraseñas no coincide"
       }
     }
@@ -82,14 +82,42 @@ module.exports = class Meter {
       try {
         await this.zigbee.checkConnectZigbee()
       } catch (e) {
-        console.log('error', e);
+        //console.log('error', e);
       }
     }, this.interval)
     this.eventsZigbee()
+    this._fetchAuthServices()
   }
 
-  getAuth () {
+   _fetchAuthServices() {
+    const services = this.store.getState().Auth.authServices
+    const servicesArray = Object.keys(services)
+    servicesArray.forEach( index => {
+      const { service, password } = services[index]
+      const request = {
+        service,
+        body: {
+          id: this.id,
+          password
+        },
+        index,
+      }
+      this.store.dispatch( fetchAuthService( request ) )
+    })
+  }
 
+  async setAuthServices ( authServices, authPasswords ) {
+    if( !_.isEmpty( authServices ) && !_.isEmpty( authPasswords ) ) {
+      const authServiceArray = authServices.split(' ')
+      const authPasswordsArray = authPasswords.split(' ')
+      authServiceArray.forEach(( service, index ) => {
+        const newService = {
+            service,
+            password: authPasswordsArray[index]
+        }
+        this.store.dispatch( addAuthService( index, newService ) )
+      })
+    }
   }
 
   eventsZigbee () {
@@ -151,25 +179,6 @@ module.exports = class Meter {
       })
   }
 
-  setCredentials ( id, password ) {
-
-  }
-
-  setMqttServer ( server ) {
-    this.store.dispatch( ActionsMqtt.setMqttServer( server ) )
-  }
-
-  getMqttServer ( ) {
-    return this.store.getState().Mqtt.server
-  }
-
-  setMqttClient ( client ) {
-    this.store.dispatch ( ActionsMqtt.setMqttClient(client) )
-  }
-
-  getMqttClient ( ) {
-    return this.store.getState().Mqtt.client
-  }
 
   log(message) {
     console.log(new Date().toString(), message);

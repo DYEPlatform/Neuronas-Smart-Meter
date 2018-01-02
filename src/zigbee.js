@@ -136,9 +136,9 @@ module.exports = class Zigbee extends EventEmitter {
   }
 
   async checkConnectZigbee () {
-    console.log('var connect', this.getConnect());
+    //console.log('var connect', this.getConnect());
     if( !this.getConnect() ) {
-      console.log('checkConnectZigbee if');
+      //console.log('checkConnectZigbee if');
       try {
         await this.connectSerial()
       } catch (e) {
