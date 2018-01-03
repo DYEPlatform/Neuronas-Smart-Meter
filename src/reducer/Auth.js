@@ -7,7 +7,6 @@ const initialState = {
 
 module.exports = (state = initialState, action = {}) => {
   let newServices;
-  console.log(action.type);
   switch (action.type) {
     case SET_AUTH_SERVICES:
       newServices = Object.assign({}, state.authServices)

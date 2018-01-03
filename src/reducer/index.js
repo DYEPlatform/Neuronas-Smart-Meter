@@ -1,12 +1,10 @@
 const redux = require('redux'),
-      Entitys = require('./Entity'),
-      Mqtt = require('./Mqtt'),
+      Meter = require('./Meter'),
       Zigbee = require('./zigbee'),
       Auth = require('./Auth')
 
 module.exports = redux.combineReducers({
-  Entitys,
-  Mqtt,
+  Meter,
   Zigbee,
   Auth,
 });

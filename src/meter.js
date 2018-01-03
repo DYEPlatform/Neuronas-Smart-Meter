@@ -3,7 +3,8 @@ const Zigbee = require('./zigbee'),
       store = require('./store'),
       moment = require('moment'),
       { addAuthService,
-        fetchAuthService } = require('./actions/Auth')
+        fetchAuthService } = require('./actions/Auth'),
+      { addAttribute } = require('./actions/Meter');
 
 module.exports = class Meter {
 
@@ -64,16 +65,18 @@ module.exports = class Meter {
   }
 
   start () {
-    this.bootstrap()
+    //this.bootstrap()
 
     /*
     *
     * Fake Meter
     *
     *
+    */
     this.zigbee.fake()
     this.eventsZigbee()
-    */
+    this._fetchAuthServices()
+
   }
 
   bootstrap () {
@@ -131,7 +134,7 @@ module.exports = class Meter {
     return new Promise((resolve, reject) => {
       let errors = {};
       const split = packet.split(',')
-      const payload = {
+      let payload = {
         id_device: split[0],
         id_attribute: split[1],
         value: split[2],
@@ -158,6 +161,9 @@ module.exports = class Meter {
       if( _.isEmpty(payload.value) || !isFinite(+payload.value) ){
         errors.value = 'Parametro Invalido'
       }
+      else {
+        payload.value = parseFloat( payload.value )
+      }
 
       if( _.isEmpty(errors)  ){
         resolve(payload)
@@ -172,7 +178,7 @@ module.exports = class Meter {
   buildFrame( packet ) {
     this.validateFrame( packet )
       .then((payload) => {
-        this.mqttPublish(payload)
+        this.store.dispatch( addAttribute(payload) )
       })
       .catch((err) => {
         console.error(err);
